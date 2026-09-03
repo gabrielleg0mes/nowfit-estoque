@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NowFit - Controle de Estoque e Vendas</title>
+  <style>
+    :root {
+      --primary: #FF6B00;
+      --primary-hover: #E05E00;
+      --dark: #121212;
+      --card-bg: #1E1E1E;
+      --card-border: #2A2A2A;
+      --text: #F5F5F5;
+      --text-muted: #A0A0A0;
+      --accent-green: #22C55E;
+      --accent-blue: #3B82F6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--dark);
+      color: var(--text);
+      padding-bottom: 40px;
+    }
+
+    header {
+      background-color: var(--card-bg);
+      border-bottom: 1px solid var(--card-border);
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand h1 {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .brand span {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      border-left: 1px solid var(--card-border);
+      padding-left: 10px;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 10px;
+      padding: 15px 20px 0 20px;
+      border-bottom: 1px solid var(--card-border);
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      padding: 10px 15px;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+    }
+
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .panel {
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    /* Controls Header */
+    .controls-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .form-group label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    select, input {
+      background: var(--dark);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    select:focus, input:focus {
+      border-color: var(--primary);
+    }
+
+    /* Table Styles */
+    .table-container {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      overflow-x: auto;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.85rem;
+    }
+
+    th {
+      background: #181818;
+      color: var(--text-muted);
+      padding: 12px 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    td {
+      padding: 12px 10px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .input-num {
+      width: 60px;
+      text-align: center;
+      padding: 6px;
+    }
+
+    .tag {
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      background: #2A2A2A;
+      color: var(--text-muted);
+    }
+
+    /* Actions Bar */
+    .actions-bar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-whatsapp {
+      background: #25D366;
+    }
+
+    .btn-whatsapp:hover {
+      background: #20BA5A;
+    }
+
+    .btn-secondary {
+      background: #2A2A2A;
+      color: var(--text);
+    }
+
+    .btn-secondary:hover {
+      background: #333;
+    }
+
+    /* Dashboard Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .kpi-card .title {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .kpi-card .value {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .kpi-card .value.green {
+      color: var(--accent-green);
+    }
+
+    /* Mobile Adaptations */
+    @media (max-width: 600px) {
+      th:nth-child(2), td:nth-child(2) {
+        display: none; /* Esconde Categoria no celular para economizar espaço */
+      }
+      
+      .brand span {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <h1>NowFit</h1>
+      <span>Controle de Estoque</span>
+    </div>
+    <div id="user-info" style="font-size: 0.8rem; color: var(--text-muted);">
+      Sistema Operacional
+    </div>
+  </header>
+
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('recepcao')">Recepção (Lançamento)</button>
+    <button class="tab-btn" onclick="switchTab('dashboard')">Visão do Patrão (Dashboard)</button>
+  </div>
+
+  <div class="container">
+    
+    <div id="panel-recepcao" class="panel active">
+      <div class="controls-card">
+        <div class="form-group">
+          <label>Unidade</label>
+          <select id="sel-unidade" onchange="carregarDadosTurno()">
+            <option value="Icó">Icó</option>
+            <option value="Cedro">Cedro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Turno</label>
+          <select id="sel-turno" onchange="carregarDadosTurno()">
+            <option value="Manhã">Manhã</option>
+            <option value="Tarde">Tarde</option>
+            <option value="Noite">Noite</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Data</label>
+          <input type="date" id="input-data">
+        </div>
+        <div class="form-group">
+          <label>Responsável</label>
+          <input type="text" id="input-responsavel" placeholder="Nome do recepcionista">
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Produto</th>
+              <th>Categoria</th>
+              <th>Anterior</th>
+              <th>Reposição</th>
+              <th>Vendido</th>
+              <th>Atual</th>
+              <th>Preço</th>
+              <th>Faturado</th>
+            </tr>
+          </thead>
+          <tbody id="tb-produtos">
+            </tbody>
+        </table>
+      </div>
+
+      <div class="actions-bar">
+        <button class="btn" onclick="salvarTurno()">💾 Salvar Turno</button>
+        <button class="btn btn-whatsapp" onclick="compartilharWhatsApp()">💬 Gerar Resumo WhatsApp</button>
+      </div>
+    </div>
+
+    <div id="panel-dashboard" class="panel">
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="title">Faturamento Hoje</div>
+          <div class="value green" id="dash-faturamento">R$ 0,00</div>
+        </div>
+        <div class="kpi-card">
+          <div class="title">Itens Vendidos Hoje</div>
+          <div class="value" id="dash-vendidos">0</div>
+        </div>
+        <div class="kpi-card">
+          <div class="title">Estoque Total</div>
+          <div class="value" id="dash-estoque">0</div>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <h3 style="padding: 15px; font-size: 0.9rem; border-bottom: 1px solid var(--card-border);">Faturamento por Unidade e Turno</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Unidade</th>
+              <th>Manhã</th>
+              <th>Tarde</th>
+              <th>Noite</th>
+              <th>Total Dia</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Icó</strong></td>
+              <td id="dash-ico-m">R$ 0,00</td>
+              <td id="dash-ico-t">R$ 0,00</td>
+              <td id="dash-ico-n">R$ 0,00</td>
+              <td id="dash-ico-tot"><strong>R$ 0,00</strong></td>
+            </tr>
+            <tr>
+              <td><strong>Cedro</strong></td>
+              <td id="dash-cedro-m">R$ 0,00</td>
+              <td id="dash-cedro-t">R$ 0,00</td>
+              <td id="dash-cedro-n">R$ 0,00</td>
+              <td id="dash-cedro-tot"><strong>R$ 0,00</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-container">
+        <h3 style="padding: 15px; font-size: 0.9rem; border-bottom: 1px solid var(--card-border);">Top Produtos Vendidos Hoje</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Produto</th>
+              <th>Qtd Vendida</th>
+              <th>Faturado</th>
+            </tr>
+          </thead>
+          <tbody id="dash-tb-top">
+            </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Base de Dados de Produtos extraída da planilha NowFit
+    const produtosBase = [
+      { id: 1, nome: "Coca-Cola Zero", cat: "Bebida", preco: 6.00, anterior: 10 },
+      { id: 2, nome: "YoPRO Coco e Batata Doce", cat: "Suplemento", preco: 14.90, anterior: 8 },
+      { id: 3, nome: "YoPRO Shake Frutas Vermelhas", cat: "Suplemento", preco: 14.90, anterior: 8 },
+      { id: 4, nome: "YoPRO Chocolate", cat: "Suplemento", preco: 14.90, anterior: 12 },
+      { id: 5, nome: "YoPRO Energy Boost", cat: "Suplemento", preco: 15.90, anterior: 6 },
+      { id: 6, nome: "Monster Energy Zero Açúcar", cat: "Energético", preco: 12.90, anterior: 15 },
+      { id: 7, nome: "Monster Energy Taurina", cat: "Energético", preco: 12.90, anterior: 15 },
+      { id: 8, nome: "Monster Energy Ultra Violet", cat: "Energético", preco: 12.90, anterior: 10 },
+      { id: 9, nome: "Monster Energy Ultra", cat: "Energético", preco: 12.90, anterior: 10 },
+      { id: 10, nome: "Leão Com Gás", cat: "Bebida", preco: 6.00, anterior: 12 },
+      { id: 11, nome: "Powerade Sabor Uva", cat: "Isotônico", preco: 8.00, anterior: 10 },
+      { id: 12, nome: "Powerade Sabor Mix de Frutas", cat: "Isotônico", preco: 8.00, anterior: 10 },
+      { id: 13, nome: "Powerade Sabor Laranja", cat: "Isotônico", preco: 8.00, anterior: 10 },
+      { id: 14, nome: "Água Com Gás", cat: "Bebida", preco: 4.00, anterior: 20 },
+      { id: 15, nome: "Água Cristal", cat: "Bebida", preco: 3.00, anterior: 30 }
+    ];
+
+    // Estrutura para armazenar lançamentos na memória local
+    let bancoDados = JSON.parse(localStorage.getItem('nowfit_db')) || {};
+
+    // Inicialização da tela
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById('input-data').valueAsDate = new Date();
+      carregarDadosTurno();
+      atualizarDashboard();
+    });
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      
+      if(tab === 'recepcao') {
+        document.querySelectorAll('.tab-btn')[0].classList.add('active');
+        document.getElementById('panel-recepcao').classList.add('active');
+      } else {
+        document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        document.getElementById('panel-dashboard').classList.add('active');
+        atualizarDashboard();
+      }
+    }
+
+    function getChaveTurno() {
+      const unidade = document.getElementById('sel-unidade').value;
+      const turno = document.getElementById('sel-turno').value;
+      const data = document.getElementById('input-data').value;
+      return `${data}_${unidade}_${turno}`;
+    }
+
+    function carregarDadosTurno() {
+      const chave = getChaveTurno();
+      const dadosSalvos = bancoDados[chave] || {};
+      
+      const tbody = document.getElementById('tb-produtos');
+      tbody.innerHTML = '';
+
+      produtosBase.forEach((p, index) => {
+        const itemSalvo = dadosSalvos[p.id] || {};
+        const reposicao = itemSalvo.reposicao || 0;
+        const vendido = itemSalvo.vendido || 0;
+        const atual = p.anterior + reposicao - vendido;
+        const faturado = vendido * p.preco;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${p.nome}</strong></td>
+          <td><span class="tag">${p.cat}</span></td>
+          <td>${p.anterior}</td>
+          <td><input type="number" class="input-num" min="0" value="${reposicao}" onchange="calcularLinha(${p.id}, ${p.anterior}, ${p.preco}, this)" id="rep-${p.id}"></td>
+          <td><input type="number" class="input-num" min="0" value="${vendido}" onchange="calcularLinha(${p.id}, ${p.anterior}, ${p.preco}, this)" id="ven-${p.id}"></td>
+          <td id="at-${p.id}">${atual}</td>
+          <td>R$ ${p.preco.toFixed(2)}</td>
+          <td id="fat-${p.id}">R$ ${faturado.toFixed(2)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function calcularLinha(id, anterior, preco) {
+      const reposicao = parseInt(document.getElementById(`rep-${id}`).value) || 0;
+      const vendido = parseInt(document.getElementById(`ven-${id}`).value) || 0;
+      
+      const atual = anterior + reposicao - vendido;
+      const faturado = vendido * preco;
+
+      document.getElementById(`at-${id}`).innerText = atual;
+      document.getElementById(`fat-${id}`).innerText = `R$ ${faturado.toFixed(2)}`;
+    }
+
+    function salvarTurno() {
+      const chave = getChaveTurno();
+      const responsavel = document.getElementById('input-responsavel').value;
+      
+      if(!responsavel) {
+        alert("Por favor, preencha o nome do responsável pelo turno.");
+        return;
+      }
+
+      const dadosTurno = { responsavel, produtos: {} };
+
+      produtosBase.forEach(p => {
+        const reposicao = parseInt(document.getElementById(`rep-${p.id}`).value) || 0;
+        const vendido = parseInt(document.getElementById(`ven-${p.id}`).value) || 0;
+        
+        dadosTurno.produtos[p.id] = {
+          reposicao,
+          vendido,
+          faturado: vendido * p.preco
+        };
+      });
+
+      bancoDados[chave] = dadosTurno;
+      localStorage.setItem('nowfit_db', JSON.stringify(bancoDados));
+      alert("Turno salvo com sucesso!");
+    }
+
+    function compartilharWhatsApp() {
+      salvarTurno();
+
+      const unidade = document.getElementById('sel-unidade').value;
+      const turno = document.getElementById('sel-turno').value;
+      const data = document.getElementById('input-data').value.split('-').reverse().join('/');
+      const responsavel = document.getElementById('input-responsavel').value;
+
+      let totalFaturado = 0;
+      let totalVendido = 0;
+      let resumoItens = "";
+
+      produtosBase.forEach(p => {
+        const vendido = parseInt(document.getElementById(`ven-${p.id}`).value) || 0;
+        if(vendido > 0) {
+          const fat = vendido * p.preco;
+          totalFaturado += fat;
+          totalVendido += vendido;
+          resumoItens += `• ${p.nome}: ${vendido}x (R$ ${fat.toFixed(2)})\n`;
+        }
+      });
+
+      let textoMsg = `*NOWFIT - FECHAMENTO DE TURNO*\n`;
+      textoMsg += `📍 *Unidade:* ${unidade}\n`;
+      textoMsg += `⏰ *Turno:* ${turno}\n`;
+      textoMsg += `📅 *Data:* ${data}\n`;
+      textoMsg += `👤 *Responsável:* ${responsavel}\n\n`;
+      textoMsg += `*RESUMO DE VENDAS:*\n`;
+      textoMsg += resumoItens.length > 0 ? resumoItens : "Nenhuma venda registrada.\n";
+      textoMsg += `\n📊 *Total de Itens Vendidos:* ${totalVendido}\n`;
+      textoMsg += `💰 *Faturamento Total:* R$ ${totalFaturado.toFixed(2)}`;
+
+      const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(textoMsg)}`;
+      window.open(url, '_blank');
+    }
+
+    function atualizarDashboard() {
+      const dataHoje = document.getElementById('input-data').value;
+      let faturamentoTotal = 0;
+      let itensVendidosTotal = 0;
+      let estoqueTotal = 0;
+
+      // Calcular por unidade e turno
+      const matriz = {
+        'Icó': { 'Manhã': 0, 'Tarde': 0, 'Noite': 0, 'Total': 0 },
+        'Cedro': { 'Manhã': 0, 'Tarde': 0, 'Noite': 0, 'Total': 0 }
+      };
+
+      const vendasPorProduto = {};
+      produtosBase.forEach(p => vendasPorProduto[p.id] = { nome: p.nome, qtd: 0, fat: 0 });
+
+      Object.keys(bancoDados).forEach(chave => {
+        if(chave.startsWith(dataHoje)) {
+          const [dt, unidade, turno] = chave.split('_');
+          const registro = bancoDados[chave];
+
+          Object.keys(registro.produtos).forEach(pId => {
+            const item = registro.produtos[pId];
+            matriz[unidade][turno] += item.faturado;
+            matriz[unidade]['Total'] += item.faturado;
+            
+            faturamentoTotal += item.faturado;
+            itensVendidosTotal += item.vendido;
+
+            vendasPorProduto[pId].qtd += item.vendido;
+            vendasPorProduto[pId].fat += item.faturado;
+          });
+        }
+      });
+
+      // Atualizar Cards KPI
+      document.getElementById('dash-faturamento').innerText = `R$ ${faturamentoTotal.toFixed(2)}`;
+      document.getElementById('dash-vendidos').innerText = itensVendidosTotal;
+      
+      produtosBase.forEach(p => estoqueTotal += p.anterior);
+      document.getElementById('dash-estoque').innerText = estoqueTotal;
+
+      // Atualizar Tabela Consolidada
+      document.getElementById('dash-ico-m').innerText = `R$ ${matriz['Icó']['Manhã'].toFixed(2)}`;
+      document.getElementById('dash-ico-t').innerText = `R$ ${matriz['Icó']['Tarde'].toFixed(2)}`;
+      document.getElementById('dash-ico-n').innerText = `R$ ${matriz['Icó']['Noite'].toFixed(2)}`;
+      document.getElementById('dash-ico-tot').innerText = `R$ ${matriz['Icó']['Total'].toFixed(2)}`;
+
+      document.getElementById('dash-cedro-m').innerText = `R$ ${matriz['Cedro']['Manhã'].toFixed(2)}`;
+      document.getElementById('dash-cedro-t').innerText = `R$ ${matriz['Cedro']['Tarde'].toFixed(2)}`;
+      document.getElementById('dash-cedro-n').innerText = `R$ ${matriz['Cedro']['Noite'].toFixed(2)}`;
+      document.getElementById('dash-cedro-tot').innerText = `R$ ${matriz['Cedro']['Total'].toFixed(2)}`;
+
+      // Atualizar Top Produtos
+      const topTbody = document.getElementById('dash-tb-top');
+      topTbody.innerHTML = '';
+      
+      const listaOrdenada = Object.values(vendasPorProduto).sort((a,b) => b.qtd - a.qtd);
+      
+      listaOrdenada.forEach(prod => {
+        if(prod.qtd > 0) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${prod.nome}</td>
+            <td>${prod.qtd}</td>
+            <td>R$ ${prod.fat.toFixed(2)}</td>
+          `;
+          topTbody.appendChild(tr);
+        }
+      });
+
+      if(topTbody.innerHTML === '') {
+        topTbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color: var(--text-muted);">Nenhuma venda registrada hoje.</td></tr>`;
+      }
+    }
+  </script>
+</body>
+</html>
